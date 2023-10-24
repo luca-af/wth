@@ -1,6 +1,5 @@
 \documentclass{beamer}
 \usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
 \usepackage[italian]{babel}
 \usepackage{lmodern}
 \usepackage{amsmath}
@@ -17,8 +16,9 @@
 \usepackage{hyperref}
 \usepackage[thicklines]{cancel}
 \usepackage{parskip}     
+\usepackage{listings}
 \usetheme{Madrid}
-
+\setbeamertemplate{frametitle continuation}{}
 
 
 \title{What The Helm?!}
@@ -47,17 +47,18 @@
  \end{frame}
  
  \begin{frame}
-   \frametitle{Di cosa parleremo}
+   \frametitle{Di cosa parleremo?}
    \begin{enumerate}
     \item Cosa fa e quali problemi risolve?
-    \item Anatomia di un Helm Chart
+    \item I comandi per iniziare
+    \item Anatomia di un Helm Chart (versione concentrata)
     \item Quando Helm ci fa dire "WTH?!"
    
    \end{enumerate}
   \end{frame}
 
 \begin{frame}
-\frametitle{Cosa è Helm}
+\frametitle{Cosa fa?}
  \begin{itemize}
     \item Helm è un tool che permette di configurare e deployare applicazioni su Kubernetes
     \item Semplifica il deploy sfuttando l'uso di \textbf{variabili} e \textbf{template}
@@ -66,7 +67,24 @@
 \end{frame}
 
  \begin{frame}
-     
+ \frametitle{Quali problemi risolve?}
+ \begin{itemize}
+     \item Voglio avere la certezza che i deploy che faccio siano \textit{sempre uguali}
+     \item Voglo avere la possibilità di riutilizzare e condividere il \cancel{template} Helm Chart che ho creato
+     \item Voglio fare un deploy di più applicazioni con dipendenze tra di loro
+     \item Voglio che sia anche possibile gestire un update/rollback di quanto deployato
+ \end{itemize}
  \end{frame}
-
-\end{document}
+ 
+ \begin{frame}[allowframebreaks]
+ \frametitle{I comandi per iniziare}
+ \begin{block}{Helm repo}
+  Con il comando \lstinline[language=bash]{helm repo add} possiamo aggiungere un repository da cui peschiamo gli Helm Chart
+  \end{block}
+  \framebreak
+  \begin{block}{Esempio}
+  \lstinline[language=bash]{helm repo add bitnami https://charts.bitnami.com/bitnami} \newline \textit{Aggiungiamo un repository chiamato bitnami da un url specifico}
+  \end{block}
+  
+ \end{frame}
+ \end{document}

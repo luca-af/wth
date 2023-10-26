@@ -19,7 +19,18 @@
 \usepackage{listings}
 \usetheme{Madrid}
 \setbeamertemplate{frametitle continuation}{}
-
+\lstdefinelanguage{yaml}{
+  keywords={spec, containers, name}, % ,... all the keyword you want
+  keywordstyle=\color{blue}\bfseries,
+  moredelim=[is][commentstyle]{||}{££}, % invisible custom delimiters
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{\#},
+  commentstyle=\color{olive}\ttfamily,
+  stringstyle=\color{orange}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
 
 \title{What The Helm?!}
 \subtitle{Panoramica su Helm}
@@ -51,7 +62,7 @@
    \begin{enumerate}
     \item Cosa fa e quali problemi risolve?
     \item I comandi per iniziare
-    \item Anatomia di un Helm Chart (versione concentrata)
+    \item Anatomia di un Helm Chart (versione \textbf{molto} concentrata)
     \item Quando Helm ci fa dire "WTH?!"
    
    \end{enumerate}
@@ -76,15 +87,192 @@
  \end{itemize}
  \end{frame}
  
- \begin{frame}[allowframebreaks]
- \frametitle{I comandi per iniziare}
+ 
+ \begin{frame}[allowframebreaks]{Un minimo di terminologia...}
+ 
+ \begin{block}{Helm}
+ Tool da cli che ci permette di creare e gestire gli \textbf{Helm Chart}
+ \end{block}
+ \framebreak
+ \begin{block}{Helm Chart}
+ Progetto che contiene informazioni, template di risorse ed eventuali valori di default che vengono processati quando viene fatto un deploy.
+ \end{block}
+ \framebreak
+ \begin{block}{Template di una risorsa}
+ Template (Go template) che, in base alle logiche con cui è stato scritto e le variabili passata, va ad essere convertito nella definizione della risorsa
+ \end{block}
+ \framebreak
+ \begin{block}{Helm repository}
+ Sorgente dalla quale vengono scaricati gli Helm Chart
+ \end{block}
+ \end{frame}
+ 
+ \begin{frame}[allowframebreaks,fragile]
+ \frametitle{Qualche comando per iniziare}
  \begin{block}{Helm repo}
   Con il comando \lstinline[language=bash]{helm repo add} possiamo aggiungere un repository da cui peschiamo gli Helm Chart
   \end{block}
   \framebreak
   \begin{block}{Esempio}
-  \lstinline[language=bash]{helm repo add bitnami https://charts.bitnami.com/bitnami} \newline \textit{Aggiungiamo un repository chiamato bitnami da un url specifico}
+  \begin{lstlisting}[backgroundcolor=\color{white},language=bash,basicstyle=\small]
+  $ helm repo add  \
+    bitnami https://charts.bitnami.com/bitnami
+  \end{lstlisting}
+  \end{block}
+  \framebreak
+  
+  \begin{block}{Helm search repo}
+  Il comando \lstinline[language=bash]{helm search repo} ci permette di cercare nei repository aggiunti un determinato termine
   \end{block}
   
+  \framebreak
+  \begin{block}{Esempio}
+  \begin{lstlisting}[backgroundcolor=\color{white},language=bash,basicstyle=\small]
+  $ helm search repo mysql
+    NAME                  CHART VERSION APP VERSION                                       
+    bitnami/mysql         9.14.1        8.0.35     
+    bitnami/phpmyadmin    13.0.0        5.2.1      
+    bitnami/mariadb       14.1.0        11.1.2     
+  \end{lstlisting}
+  \end{block}
+  \framebreak
+  
+  \begin{block}{Helm Install}
+  Il comando \lstinline[language=bash]{helm install} permette di deployare l'applicazione/le applicazioni definite nel nostro chart
+  \end{block}
+  
+  \framebreak
+  \begin{block}{Esempio}
+  \begin{lstlisting}[backgroundcolor=\color{white},language=bash,basicstyle=\small]
+  $ helm install \
+    -f myvalues.yaml --set mariadb.auth.database=userdb \ 
+    my_wordpress bitnami/wordpress
+  \end{lstlisting}
+  \end{block}
  \end{frame}
- \end{document}
+ \begin{frame}[allowframebreaks,fragile]{Anatomia di un Helm Chart}
+  Abbiamo già accennato che cosa è un Helm Chart, ma: 
+  \begin{itemize}
+      \item Come faccio a crearne uno?
+      \item Da cosa è composto?
+      \item Come sono fatti i template al suo interno?
+  \end{itemize}
+  \framebreak
+  \begin{block}{Creazione di un Helm Chart}
+  Per creare un Helm Chart posso farlo a mano oppure con con il comando \lstinline[language=bash]{helm create} 
+  \end{block}
+  \framebreak
+  \begin{block}{Esempio}
+  \begin{lstlisting}[backgroundcolor=\color{white},language=bash,basicstyle=\small]
+  $ helm create mychart
+  $ ls mychart
+  .helmignore
+  Chart.yaml
+  values.yaml
+  charts/
+  templates/
+  \end{lstlisting}
+  \end{block}
+  \framebreak
+  \begin{block}{Da cosa è composto?}
+  Un helm chart è composto da diverse file, di cui i principali sono:
+  \begin{itemize}
+      \item \lstinline[language=bash]{Chart.yaml}
+      \item \lstinline[language=bash]{values.yaml}
+      \item \lstinline[language=bash]{templates/}
+  \end{itemize}
+  \end{block}
+  \framebreak
+  \begin{block}{Chart.yaml}
+  \begin{lstlisting}[backgroundcolor=\color{white},language=yaml,basicstyle=\small]
+apiVersion: v2
+name: wordpress
+description: WordPress is the world...
+[...]
+dependencies:
+  - name: mariadb
+    repository: [...]
+    version: 14.x.x
+[...]
+version: 18.0.10
+appVersion: 6.3.2
+  \end{lstlisting}
+  \end{block}
+  \framebreak
+  \begin{block}{values.yaml}
+  \begin{lstlisting}[backgroundcolor=\color{white},language=yaml,basicstyle=\tiny]
+  
+[...]
+image:
+  registry: docker.io
+  repository: bitnami/wordpress
+  tag: 6.3.2-debian-11-r3
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+  debug: false
+[...]
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /wp-admin/install.php
+    port: '{{ .Values.wordpressScheme }}'
+    scheme: '{{ .Values.wordpressScheme | upper }}'
+    httpHeaders: []
+[...]
+  \end{lstlisting}
+  \end{block}
+ \framebreak
+ \begin{block}{template/deployment.yaml}
+ \begin{lstlisting}[backgroundcolor=\color{white},language=yaml,basicstyle=\tiny]
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+[...]
+  containers:
+    - name: wordpress
+      image: {{ include "wordpress.image" . }}
+      imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+      {{- if .Values.diagnosticMode.enabled }}
+      command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+      {{- else if .Values.command }}
+      command: {{- include "common.tplvalues.render" ( dict "value" .Values.command "context" $) | nindent 12 }}
+      {{- end }}
+[...]
+\end{lstlisting}
+\end{block}
+\end{frame} 
+\begin{frame}[allowframebreaks,fragile]{WTH?!}
+\begin{block}{Cosa può andare storto?}
+Per quanto Helm sia una ottima soluzione, a volte può farci tirare alcuni \cancel{WTF?!} WTH?!.
+\end{block}
+\framebreak
+\begin{block}{Template di Helm}
+ Il motore per i template che è stato scelto è quello di Go.
+ I suoi costrutti, assieme alla sintassi yaml delle risorse k8s, rendono la scrittura e lettura di Helm Template non facilissima.  
+\end{block}
+\framebreak
+\begin{block}{Dipendenze}
+Con la sezione \lstinline{dependencies} di Chart.yaml posso andare a dichiarare gli Helm Chart da cui dipende il nostro.
+Questo porta ovviamente a possibili bug/incompatiilità in base ai Chart che sto utilizzando e su cui non ho il controllo.
+\end{block}
+\framebreak
+\begin{block}{}
+\end{block}
+\end{frame}
+\begin{frame}{}
+\centering \Large \emph{Domande?}
+\end{frame}
+\begin{frame}{Links utili}
+\begin{itemize}
+    \item \href{https://helm.sh/docs/}{Documentazione di Helm}
+    \item \href{https://github.com/bitnami/charts/tree/main/bitnami/wordpress}{Helm Chart} da cui sono stati tratti gli snippet
+    \item \href{https://artifacthub.io/}{Artifactor Hub} da cui si può cercare diversi Helm Chart da applicare
+\end{itemize}
+\end{frame}
+\begin{frame}{Licenza slides}
+\centering
+Queste slides sono rilasciate in 
+\end{frame}
+\end{document}

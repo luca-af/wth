@@ -20,7 +20,7 @@
 \usetheme{Madrid}
 \setbeamertemplate{frametitle continuation}{}
 \lstdefinelanguage{yaml}{
-  keywords={spec, containers, name}, % ,... all the keyword you want
+  keywords={spec, containers, name, description, dependencies, repository, version, appVersion, apiVersion, tag, pullPolicy, pullSecrets, debug, image, livenessProbe, enabled, httpGet, metadata, kind, imagePullPolicy}, % ,... all the keyword you want
   keywordstyle=\color{blue}\bfseries,
   moredelim=[is][commentstyle]{||}{££}, % invisible custom delimiters
   identifierstyle=\color{black},
@@ -35,7 +35,7 @@
 \title{What The Helm?!}
 \subtitle{Panoramica su Helm}
 \author{Luca Andrea Fusè}
-\date{21 Ottobre 2023}
+\date{28 Ottobre 2023}
 
 \begin{document}
 
@@ -235,9 +235,13 @@ metadata:
       image: {{ include "wordpress.image" . }}
       imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
       {{- if .Values.diagnosticMode.enabled }}
-      command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+      command: >
+        {{- include "common.tplvalues.render" 
+        (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
       {{- else if .Values.command }}
-      command: {{- include "common.tplvalues.render" ( dict "value" .Values.command "context" $) | nindent 12 }}
+      command: >
+        {{- include "common.tplvalues.render" 
+        ( dict "value" .Values.command "context" $) | nindent 12 }}
       {{- end }}
 [...]
 \end{lstlisting}
@@ -249,16 +253,17 @@ Per quanto Helm sia una ottima soluzione, a volte può farci tirare alcuni \canc
 \end{block}
 \framebreak
 \begin{block}{Template di Helm}
- Il motore per i template che è stato scelto è quello di Go.
+ Il motore per i template che è stato scelto è quello di Go. \newline
  I suoi costrutti, assieme alla sintassi yaml delle risorse k8s, rendono la scrittura e lettura di Helm Template non facilissima.  
 \end{block}
 \framebreak
 \begin{block}{Dipendenze}
-Con la sezione \lstinline{dependencies} di Chart.yaml posso andare a dichiarare gli Helm Chart da cui dipende il nostro.
+Con la sezione \lstinline{dependencies} di Chart.yaml posso andare a dichiarare gli Helm Chart da cui dipende il nostro. \newline 
 Questo porta ovviamente a possibili bug/incompatiilità in base ai Chart che sto utilizzando e su cui non ho il controllo.
 \end{block}
 \framebreak
-\begin{block}{}
+\begin{block}{Complessità}
+Anche se abbiamo un martello, non vuol dire che tutto deve essere un chiodo. \newline Per quanto Helm sia un ottimo strumento, non è detto che per il nostro deploy sia uno strumento sensato.
 \end{block}
 \end{frame}
 \begin{frame}{}
@@ -273,6 +278,7 @@ Questo porta ovviamente a possibili bug/incompatiilità in base ai Chart che sto
 \end{frame}
 \begin{frame}{Licenza slides}
 \centering
-Queste slides sono rilasciate in 
+Queste slides sono rilasciate sotto \href{https://creativecommons.org/licenses/by-sa/4.0/}{CC-BY-SA 4.0}
+\begin{center} \includegraphics{img/by-sa.png} \end{center}
 \end{frame}
 \end{document}

@@ -18,6 +18,18 @@
 \usepackage{parskip}     
 \usepackage{listings}
 \usetheme{Madrid}
+\usepackage{courier}
+
+%% Customization
+ \hypersetup{
+     colorlinks=true,
+     linkcolor= black,
+     filecolor=blue,
+     citecolor = black,      
+     urlcolor=blue,
+     }
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+\lstset{framextopmargin=50pt,frame=bottomline}
 \setbeamertemplate{frametitle continuation}{}
 \lstdefinelanguage{yaml}{
   keywords={spec, containers, name, description, dependencies, repository, version, appVersion, apiVersion, tag, pullPolicy, pullSecrets, debug, image, livenessProbe, enabled, httpGet, metadata, kind, imagePullPolicy}, % ,... all the keyword you want
@@ -31,6 +43,23 @@
   morestring=[b]',
   morestring=[b]"
 }
+
+\setbeamertemplate{section page}
+{
+    \begingroup
+    \begin{beamercolorbox}[sep=12pt,center]{section title}
+        \usebeamerfont{section title}\insertsection\par
+    \end{beamercolorbox}
+    \endgroup
+}
+
+\AtBeginSection[]{
+    \begin{frame}[plain]
+        \usebeamertemplate{section page}
+    \end{frame}
+}
+
+%% Document's info
 
 \title{What The Helm?!}
 \subtitle{Panoramica su Helm}
@@ -49,31 +78,33 @@
      \frametitle{Presentazione}
 
     \begin{itemize}
-        \item Membro (onorario) dell'associazione \href{https://www.poul.org}{P.O.u.L.}
+        \item Membro onorario dell'associazione \href{https://www.poul.org}{P.O.u.L.}
         \item Socio di \href{https://www.ils.org}{I.L.S.} nella sezione di Milano
         \item Consulente per \href{https://www.kyndryl.com}{Kyndryl}
-        \begin{itemize}\item TL;DR Faccio cose con Openshift/Kubernetes/Cloud \end{itemize}
-        \item Sono \cancel{1}0 giorni che non parlo di Kubernetes e/o Linux
+        \begin{itemize}\item TL;DR Faccio cose con OpenShift/Kubernetes/Cloud \end{itemize}
+        \item Sono \cancel{1}0 giorni che non parlo di Kubernetes e Linux
     \end{itemize}
  \end{frame}
  
  \begin{frame}
    \frametitle{Di cosa parleremo?}
-   \begin{enumerate}
-    \item Cosa fa e quali problemi risolve?
-    \item I comandi per iniziare
-    \item Anatomia di un Helm Chart (versione \textbf{molto} concentrata)
-    \item Quando Helm ci fa dire "WTH?!"
+   \tableofcontents
+%   \begin{enumerate}
+%    \item Cosa fa e quali problemi risolve?
+%    \item I comandi per iniziare
+%    \item Anatomia di un Helm Chart (versione \textbf{molto} concentrata)
+%    \item Quando Helm ci fa dire "WTH?!"
    
-   \end{enumerate}
+%   \end{enumerate}
   \end{frame}
-
+  
+\section{Cosa fa e quali problemi risolve?}
 \begin{frame}
 \frametitle{Cosa fa?}
  \begin{itemize}
     \item Helm è un tool che permette di configurare e deployare applicazioni su Kubernetes
     \item Semplifica il deploy sfuttando l'uso di \textbf{variabili} e \textbf{template}
-    \item In poche parole, Helm è \textit{il gestore di pacchetti} per Kubernetes
+    \item In poche parole, Helm è "il gestore di pacchetti" per Kubernetes
   \end{itemize}
 \end{frame}
 
@@ -81,13 +112,13 @@
  \frametitle{Quali problemi risolve?}
  \begin{itemize}
      \item Voglio avere la certezza che i deploy che faccio siano \textit{sempre uguali}
-     \item Voglo avere la possibilità di riutilizzare e condividere il \cancel{template} Helm Chart che ho creato
+     \item Voglio avere la possibilità di riutilizzare e condividere il \cancel{template} Helm Chart che ho creato
      \item Voglio fare un deploy di più applicazioni con dipendenze tra di loro
      \item Voglio che sia anche possibile gestire un update/rollback di quanto deployato
  \end{itemize}
  \end{frame}
  
- 
+\section{Un minimo di terminologia...} 
  \begin{frame}[allowframebreaks]{Un minimo di terminologia...}
  
  \begin{block}{Helm}
@@ -99,7 +130,7 @@
  \end{block}
  \framebreak
  \begin{block}{Template di una risorsa}
- Template (Go template) che, in base alle logiche con cui è stato scritto e le variabili passata, va ad essere convertito nella definizione della risorsa
+ Template (Go template) che, in base alle logiche con cui è stato scritto e alle variabili passata, va ad essere convertito nella definizione della risorsa
  \end{block}
  \framebreak
  \begin{block}{Helm repository}
@@ -107,10 +138,11 @@
  \end{block}
  \end{frame}
  
+ \section{Comandi per iniziare}
  \begin{frame}[allowframebreaks,fragile]
- \frametitle{Qualche comando per iniziare}
+ \frametitle{Comandi per iniziare}
  \begin{block}{Helm repo}
-  Con il comando \lstinline[language=bash]{helm repo add} possiamo aggiungere un repository da cui peschiamo gli Helm Chart
+  Con il comando \lstinline[language=bash]{helm repo add} possiamo aggiungere un repository da cui pescare gli Helm Chart
   \end{block}
   \framebreak
   \begin{block}{Esempio}
@@ -150,16 +182,17 @@
   \end{lstlisting}
   \end{block}
  \end{frame}
+\section{Anatomia di un Helm Chart (\textbf{molto} concentrata)}
  \begin{frame}[allowframebreaks,fragile]{Anatomia di un Helm Chart}
-  Abbiamo già accennato che cosa è un Helm Chart, ma: 
+  Abbiamo già accennato a che cosa sia un Helm Chart, ma: 
   \begin{itemize}
       \item Come faccio a crearne uno?
       \item Da cosa è composto?
-      \item Come sono fatti i template al suo interno?
+      \item Come sono fatti i template al loro interno?
   \end{itemize}
   \framebreak
   \begin{block}{Creazione di un Helm Chart}
-  Per creare un Helm Chart posso farlo a mano oppure con con il comando \lstinline[language=bash]{helm create} 
+  Per creare un Helm Chart posso facendolo a mano oppure con il comando \lstinline[language=bash]{helm create} 
   \end{block}
   \framebreak
   \begin{block}{Esempio}
@@ -247,23 +280,33 @@ metadata:
 \end{lstlisting}
 \end{block}
 \end{frame} 
+\section{Quando Helm ci fa dire WTH?!}
 \begin{frame}[allowframebreaks,fragile]{WTH?!}
 \begin{block}{Cosa può andare storto?}
 Per quanto Helm sia una ottima soluzione, a volte può farci tirare alcuni \cancel{WTF?!} WTH?!.
 \end{block}
 \framebreak
 \begin{block}{Template di Helm}
- Il motore per i template che è stato scelto è quello di Go. \newline
- I suoi costrutti, assieme alla sintassi yaml delle risorse k8s, rendono la scrittura e lettura di Helm Template non facilissima.  
+ Il motore che è stato scelto per i template è quello di Go. \newline
+ I suoi costrutti, assieme alla sintassi yaml delle risorse k8s, rendono la scrittura e la lettura dei template di Helm non facilissima.  
 \end{block}
 \framebreak
 \begin{block}{Dipendenze}
-Con la sezione \lstinline{dependencies} di Chart.yaml posso andare a dichiarare gli Helm Chart da cui dipende il nostro. \newline 
-Questo porta ovviamente a possibili bug/incompatiilità in base ai Chart che sto utilizzando e su cui non ho il controllo.
+Con la sezione \lstinline{dependencies} di Chart.yaml posso andare a dichiarare gli Helm Chart da cui il nostro dipende. \newline 
+Questo porta ovviamente a possibili bug/incompatibilità in base ai Chart che sto utilizzando e su cui non ho il controllo.
 \end{block}
 \framebreak
 \begin{block}{Complessità}
-Anche se abbiamo un martello, non vuol dire che tutto deve essere un chiodo. \newline Per quanto Helm sia un ottimo strumento, non è detto che per il nostro deploy sia uno strumento sensato.
+Anche se abbiamo un martello, non vuol dire che tutto debba essere un chiodo. \newline Per quanto Helm sia un ottimo strumento, non è detto che per il nostro deploy sia uno strumento sensato.
+\end{block}
+\framebreak 
+\begin{block}{Complessità 2}
+Poter far in modo che il nostro Helm Chart dichiari gli altri Chart di cui necessita è \textbf{molto} comodo. \newline Però bisogna far attenzione a non lasciarsi prendere (troppo) la mano!
+\end{block}
+\framebreak
+\begin{block}{Sicurezza}
+Quando si utilizzano Helm Chart provenienti dalla community, bisogna fare attenzione ad utilizzare Chart che si reputano affidabili. \newline
+Questo si risolve facilmente utilizzando Chart ufficiali oppure scrivendone di nostri custom.
 \end{block}
 \end{frame}
 \begin{frame}{}
@@ -273,9 +316,13 @@ Anche se abbiamo un martello, non vuol dire che tutto deve essere un chiodo. \ne
 \begin{itemize}
     \item \href{https://helm.sh/docs/}{Documentazione di Helm}
     \item \href{https://github.com/bitnami/charts/tree/main/bitnami/wordpress}{Helm Chart} da cui sono stati tratti gli snippet
-    \item \href{https://artifacthub.io/}{Artifactor Hub} da cui si può cercare diversi Helm Chart da applicare
+    \item \href{https://artifacthub.io/}{Artifactor Hub} da cui si possono recuperare diversi Helm Chart (oltre a diversi altri tipi di oggetti)
 \end{itemize}
 \end{frame}
+\begin{frame}{}
+\centering \Large \textbf{Grazie per l'attenzione!}
+\end{frame}
+
 \begin{frame}{Licenza slides}
 \centering
 Queste slides sono rilasciate sotto \href{https://creativecommons.org/licenses/by-sa/4.0/}{CC-BY-SA 4.0}
